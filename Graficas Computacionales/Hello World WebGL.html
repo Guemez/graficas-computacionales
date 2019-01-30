@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<!-- saved from url=(0125)https://miscursos.tec.mx/bbcswebdav/pid-13380186-dt-content-rid-75230323_1/courses/GDA.TC3022.1.1911.824/1-1-hello-world.html -->
+<html lang="es"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<title>Hello World WebGL</title>
+
+
+		<style type="text/css">
+			#canvas{
+				border:2px solid blue;
+			}
+		</style>
+
+		<script id="vertexShader" type="x-shader/x-vertex">
+			attribute vec3 aPosition;
+
+			void main(){
+				gl_Position = vec4(aPosition, 1.);
+			}
+		</script>
+
+		<script id="fragmentShader" type="x-shader/x-fragment">
+			// fragment shaders don't have a default precision, so mediump is ok
+			precision mediump float;
+
+			void main(){
+				gl_FragColor = vec4(1., 0, 0, 1.);	// white
+			}
+		</script>
+
+		<script type="text/javascript">
+			function createShader(type, source)
+			{
+				var shader = gl.createShader(type);
+				gl.shaderSource(shader, source);
+				gl.compileShader(shader);
+				var success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
+				if (success)
+				{
+					return shader;
+				}
+				else
+				{
+					console.log(gl.getShaderInfoLog(shader));
+					gl.deleteShader(shader);
+				}
+			}
+
+			function createShaderProgram(vertexShader, fragmentShader)
+			{
+				var program = gl.createProgram();
+				gl.attachShader(program, vertexShader);
+				gl.attachShader(program, fragmentShader);
+				gl.linkProgram(program);
+				var success = gl.getProgramParameter(program, gl.LINK_STATUS);
+				if(success)
+				{
+					return program;
+				}
+				else
+				{
+					console.log(gl.getShaderInfoLog(program));
+					gl.deleteShader(program);
+				}
+			}
+		</script>
+
+	</head>
+	<body onload="main();">
+		<canvas id="canvas" width="500" height="500"></canvas>
+
+		<script type="text/javascript">
+			"use strict"
+			var canvas;
+			var gl; // WebGl context
+
+			function main()
+			{
+				// Initialization code starts
+
+				// The Scene
+				var positions = [ 0., .5 , 0., 	// V0
+					             -.5, -.5, 0.,// v1
+						          .5, -.5, 0.	// V2
+							    ];
+
+				// Initialize the GL context
+				canvas = document.getElementById("canvas");
+				gl = canvas.getContext("webgl");
+
+				// Initialize the shader program
+
+				var vertexShaderSrc = document.getElementById("vertexShader").text;
+				var fragmentShaderSrc = document.getElementById("fragmentShader").text;
+				var vertexShader = createShader(gl.VERTEX_SHADER, vertexShaderSrc);
+				var fragmentShader = createShader(gl.FRAGMENT_SHADER, fragmentShaderSrc);
+				var shaderProgram = createShaderProgram(vertexShader, fragmentShader);
+
+				// Set shader program as current
+				gl.useProgram(shaderProgram);
+
+				// Initialize buffers
+
+				var positionBuffer = gl.createBuffer();
+
+				// Copy vertex data form the CPU to the GPU
+
+				// Set buffer as current
+				gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+				// Copy data
+				gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+
+				// Initialization code ends here!
+
+				// Rendering code starts here!
+
+				// Mapping from clip-space coords to the viewport pixel coords
+				gl.viewport(0, 0, canvas.width, canvas.height);
+
+				// Set the clear color
+				gl.clearColor(1., 1., 1., 1.);	// black
+
+				// Clear the framebuffer
+				gl.clear(gl.COLOR_BUFFER_BIT);
+
+				// Configure the vertex attributes
+
+				// Set buffer as current
+				gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+
+				// Locate attribute variables
+				var aPositionLocation = gl.getAttribLocation(shaderProgram, "aPosition");
+
+				// Set layout of the data
+				var size = 3;			// 3 values (x, y, z) per iteration
+				var type = gl.FLOAT;	// 32 bit floating point values
+				var normalize = false; 	// do not requiere normalization
+				var stride = 0;			// skip size*sizeof(type) bytes each iter
+				var offset = 0;			// start at the beginning of the buffer
+				gl.vertexAttribPointer(aPositionLocation, size, type, normalize, stride, offset);
+
+				// Enable the vertex attributes
+				gl.enableVertexAttribArray(aPositionLocation);
+
+				// Draw the scene
+				// Any drawing commands will use the current shader program, the current buffer, and the currently-enabled attribute bindings
+
+				var primitiveType = gl.TRIANGLES;	// type primitive to render
+				var offset = 0;	// the starting index in the array of vector positions
+				var count = 3;				// the number of points to be rendered
+				gl.drawArrays(primitiveType, offset, count);
+			}
+		</script>
+
+</body></html>

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<!-- saved from url=(0133)https://miscursos.tec.mx/bbcswebdav/pid-13380186-dt-content-rid-75241136_1/courses/GDA.TC3022.1.1911.824/1-8-hello-world-modular.html -->
+<html lang="es"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<title>Triangle  with Points</title>
+		
+
+		<style type="text/css">
+			#canvas{
+				border:2px solid blue;
+			}
+		</style>
+
+		<script id="vertexShader" type="x-shader/x-vertex">
+			attribute vec3 aPosition;
+			
+			void main(){
+				gl_Position = vec4(aPosition, 1.);
+				gl_PointSize = 3.;
+			}
+		</script>
+
+		<script id="fragmentShader" type="x-shader/x-fragment">
+			// fragment shaders don't have a default precision, so mediump is ok
+			precision mediump float;
+
+			void main(){
+				gl_FragColor = vec4(1., 1., 1., 1.);	// white
+			}
+		</script>
+
+		<script type="text/javascript" src="./Hello World WebGL. Modular Version_files/create-shaders-lib.js.descarga"></script>
+	</head>
+	<body onload="main();">
+		<canvas id="canvas" width="500" height="500"></canvas>
+		
+		<script type="text/javascript">	
+			"use strict"
+			var canvas;
+			var gl;
+			var positions;
+			var indices;
+			var shaderProgram;
+			var positionBuffer;
+			var indicesBuffer;
+
+			function init()
+			{
+				// Initialization code starts
+				
+				// The Scene
+				positions = [ 0., 0.5, 0., 	// V0
+					             -0.5, -0.5, 0.,// v1
+						          0.5, -0.5, 0.	// V2
+							    ];
+
+				indices = [0, 1, 2];
+
+				// Initialize the GL context
+				canvas = document.getElementById("canvas");
+				gl = canvas.getContext("webgl");
+
+				// Initialize the shader program
+
+				var vertexShaderSrc = document.getElementById("vertexShader").text;
+				var fragmentShaderSrc = document.getElementById("fragmentShader").text;
+				var vertexShader = createShader(gl.VERTEX_SHADER, vertexShaderSrc);
+				var fragmentShader = createShader(gl.FRAGMENT_SHADER, fragmentShaderSrc);
+				shaderProgram = createShaderProgram(vertexShader, fragmentShader);
+
+				// Set shader program as current
+				gl.useProgram(shaderProgram);
+
+				// Initialize buffers
+
+				positionBuffer = gl.createBuffer();
+				indicesBuffer = gl.createBuffer();
+
+				// Copy vertex data form the CPU to the GPU
+
+				// Set buffer as current
+				gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+				// Copy data
+				gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+
+				// Set buffer as current
+				gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indicesBuffer);
+				// Copy data
+				gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
+
+				// Initialization code ends here!
+			}
+
+			function render()
+			{
+				// Rendering code starts here!
+
+				// Mapping from clip-space coords to the viewport pixel coords
+				gl.viewport(0, 0, canvas.width, canvas.height);
+
+				// Set the clear color
+				gl.clearColor(0., 0., 0., 1.);	// black
+
+				// Clear the framebuffer
+				gl.clear(gl.COLOR_BUFFER_BIT);
+				
+				// Configure the vertex attributes
+
+				// Set buffer as current
+				gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+
+				// Locate attribute variables
+				var aPositionLocation = gl.getAttribLocation(shaderProgram, "aPosition");
+
+				// Set layout of the data
+				var size = 3;			// 3 values (x, y, z) per iteration
+				var type = gl.FLOAT;	// 32 bit floating point values
+				var normalize = false; 	// do not requiere normalization
+				var stride = 0;			// skip size*sizeof(type) bytes each iter
+				var offset = 0;			// start at the beginning of the buffer
+				gl.vertexAttribPointer(aPositionLocation, size, type, normalize, stride, offset);
+
+				// Enable the vertex attributes
+				gl.enableVertexAttribArray(aPositionLocation);
+				
+				// Draw the scene
+				// Any drawing commands will use the current shader program, the current buffer, and the currently-enabled attribute bindings	
+
+				var mode = gl.Points;	// The type primitive to render
+				var count = indices.length;	// the number of elements to be rendered
+				var type = gl.UNSIGNED_SHORT; // the type of the values in the element array buffer
+				var offset = 0; 	// Bytes offset in the element array buffer
+				gl.drawElements(mode, count, type, offset);
+			}
+
+			function main()
+			{
+				init();
+				render();
+			}
+		</script>
+	
+</body></html>
